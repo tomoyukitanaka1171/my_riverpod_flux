@@ -6,6 +6,7 @@ abstract class ImmutableState {
 
 typedef ModelUpdate<T> = T Function(T prev);
 
+/// maybe, state_notifier come true same purpose?
 abstract class StateFlow<T extends ImmutableState> extends ChangeNotifier {
   T get value;
   set value(T v);
@@ -26,19 +27,20 @@ abstract class StateFlow<T extends ImmutableState> extends ChangeNotifier {
   void _update(ModelUpdate<T> updator) {
     final prevValue = value;
     final nextValue = updator(value);
+
     if (!_compare(prevValue, nextValue)) {
       value = nextValue;
-    }
-
-    notifyListeners();
+      print('notify${value}');
+      notifyListeners();
+    } else {}
   }
 }
 
 mixin Mutator {
-  List<ImmutableState> get states;
+  List<StateFlow<ImmutableState>> get states;
 
-  void mutate<ST extends StateFlow<ImmutableState>>(ModelUpdate<ImmutableState> updator) {
-    states.whereType<ST>().map((s) {
+  void mutate<I extends ImmutableState, S extends StateFlow<I>>(ModelUpdate<I> updator) {
+    states.whereType<S>().forEach((s) {
       s._update(updator);
     });
   }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:my_riverpod_sample/provider/user_mutator.dart';
+import 'package:my_riverpod_sample/mutator/user_mutator.dart';
+import 'package:my_riverpod_sample/stores/user_store.dart';
+
+final userStoreProvider = ChangeNotifierProvider<UserStore>((_) => UserStore());
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -21,20 +23,12 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends HookConsumerWidget {
+class MyHomePage extends ConsumerWidget {
   final String title;
   const MyHomePage({super.key, required this.title});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final counter = useState(0);
-
-    void incrementCounter() {
-      counter.value++;
-    }
-
-    final userMutator = UserMutator.fromRef(ref);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -46,17 +40,22 @@ class MyHomePage extends HookConsumerWidget {
             const Text(
               'You have pushed the button this many times:',
             ),
-            Text(
-              '${counter.value}',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            Consumer(builder: (context, ref, _) {
+              print('rebuild');
+              print(ref.watch(userStoreProvider).value.name);
+              return Text(
+                ref.watch(userStoreProvider).value.name,
+                style: Theme.of(context).textTheme.headlineMedium,
+              );
+            }),
+            TextButton(onPressed: () => UserMutator.fromRef(ref).updateName(name: "たこ焼き"), child: Text('hoge'))
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: incrementCounter,
+      floatingActionButton: const FloatingActionButton(
+        onPressed: null,
         tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
